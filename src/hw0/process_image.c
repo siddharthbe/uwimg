@@ -28,14 +28,12 @@ float get_pixel(image im, int x, int y, int c)
     if (c >= im.c) {
     	new_c = (im.c - 1);
     }
-    // printf("%d %d %d ", new_x, new_y, new_c);
     return im.data[new_c * im.w * im.h + new_y * im.w + new_x];
 }
 
 void set_pixel(image im, int x, int y, int c, float v)
 {
     // TODO Fill this in
-    // printf("%d", v);
     if (x >= 0 && y >= 0 && c >= 0 && x < im.w && y < im.h && c < im.c) {
         im.data[c * im.w * im.h + y * im.w + x] = v;
     }
@@ -45,13 +43,6 @@ image copy_image(image im)
 {
     image copy = make_image(im.w, im.h, im.c);
     // TODO Fill this in
-    //for (int c = 0; c < copy.c; c++) {
-    	//for (int y = 0; y < copy.w; y++) {
-	    //for (int x = 0; x < copy.h; x++) {
-	        //copy.data[c * copy.w * copy.h + y * copy.w + x] = im.data[c * im.w * im.h + y * im.w + x]; 
-	    //}
-	//}
-    //}
     memcpy(copy.data, im.data, im.w * im.h * im.c * sizeof(float));
     return copy;
 }
