@@ -114,20 +114,22 @@ image structure_matrix(image im, float sigma)
 {
     image S = make_image(im.w, im.h, 3);
     // TODO: calculate structure matrix for im.
-    // image temp = make_image(im.w, im.h, 3);
+    image temp = make_image(im.w, im.h, 3);
     image gx_filter = make_gx_filter();
     image gy_filter = make_gy_filter();
     image gx_img = convolve_image(im, gx_filter, 0);
     image gy_img = convolve_image(im, gy_filter, 0);
     for (int i = 0; i < im.h * im.w; i++) {
-        S.data[i] = gx.data[i] * gx.data[i];
-        S.data[i + im.h * im.w] = gy.data[i] * gy.data[i];
-        S.data[i + 2 * im.h * im.w] = gx.data[i] * gy.data[i];
+        temp.data[i] = gx_img.data[i] * gx_img.data[i];
+        temp.data[i + im.h * im.w] = gy_img.data[i] * gy_img.data[i];
+        temp.data[i + 2 * im.h * im.w] = gx_img.data[i] * gy_img.data[i];
     }
+    S = smooth_image(temp, sigma);
     free_image(gx_filter);
     free_image(gy_filter);
     free_image(gx_img);
     free_image(gy_img);
+    free_image(temp);
     return S;
 }
 
@@ -163,11 +165,9 @@ image nms_image(image im, int w)
     //             set response to be very low (I use -999999 [why not 0??])
     for (int i = 0; i < im.h; i++) {
         for (int j = 0; j < im.w; j++) {
-            float v = get_pixel(im, j, i, 0);
             for (int k = -w; k < w + 1; k++) {
                 for (int l = -w; l < w + 1; l++) {
-                    float u = get_pixel(im, j + k, i + l, 0);
-                    if (u > v) {
+                    if (get_pixel(im, j + k, i + l, 0) > get_pixel(im, j, i, 0)) {
                         set_pixel(r, j, i, 0, -999999);
                     }
                 }
@@ -210,8 +210,7 @@ descriptor *harris_corner_detector(image im, float sigma, float thresh, int nms,
 
     for (int i = 0; i < Rnms.h * Rnms.w; i++) {
         if (Rnms.data[i] > thresh) {
-            *d = describe_index(im, i);
-            *d++;
+            *d++ = describe_index(im, i);
         }
     }
     d -= count;
