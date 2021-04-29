@@ -138,11 +138,19 @@ match *match_descriptors(descriptor *a, int an, descriptor *b, int bn, int *mn)
         // TODO: for every descriptor in a, find best match in b.
         // record ai as the index in *a and bi as the index in *b.
         int bind = 0; // <- find the best match
+        m[j].distance = INFINITY;
+        for (int i = 0; i < bn; i++) {
+            float dst = l1_distance(a[j].data, b[i].data, a[j].n);
+            if (dst < m[j].distance) {
+                m[j].distance = dst;
+                bind = i;
+            }
+        }
         m[j].ai = j;
         m[j].bi = bind; // <- should be index in b.
         m[j].p = a[j].p;
         m[j].q = b[bind].p;
-        m[j].distance = 0; // <- should be the smallest L1 distance!
+        // m[j].distance = 0; // <- should be the smallest L1 distance!
     }
 
     int count = 0;
@@ -153,6 +161,19 @@ match *match_descriptors(descriptor *a, int an, descriptor *b, int bn, int *mn)
     // Each point should only be a part of one match.
     // Some points will not be in a match.
     // In practice just bring good matches to front of list, set *mn.
+    qsort(m, an, sizeof(match), &match_compare);
+    for (int i = 0; i < an; i++) {
+        if (seen[m[i].bi]) {
+            for (int j = i; j < an - 1; j++) {
+                m[j] = m[j + 1];
+            }
+            an--;
+            i = count - 1;
+        } else {
+            seen[m[i].bi] = 1;
+            count++;
+        }
+    }
     *mn = count;
     free(seen);
     return m;
